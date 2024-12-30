@@ -1,0 +1,52 @@
+import hashlib
+
+# Function to calculate SHA-256 hash of a file
+def calculate_hash(file_path):
+    sha256 = hashlib.sha256()
+    with open(file_path, 'rb') as f:
+        while chunk := f.read(4096):  # Read the file in chunks
+            sha256.update(chunk)
+    return sha256.hexdigest()
+
+# Function to compare hashes of two files
+def compare_files(file1, file2):
+    hash1 = calculate_hash(file1)
+    hash2 = calculate_hash(file2)
+    are_same = hash1 == hash2
+    return are_same, hash1, hash2
+
+# File names
+file1_name = 'file1.txt'
+file2_name = 'file2.txt'
+file3_name = 'file3.txt'
+
+# Sample content for the files
+content_file1 = """This is a sample text file containing at least thirty words to fulfill the requirement.
+The quick brown fox jumps over the lazy dog. This sentence should be identical in both file1 and file2.
+File3 will have only a minor change to test the avalanche effect."""
+
+content_file3 = """This is a sample text file containing at least thirty words to fulfill the requirement.
+The quick brown fox jumps over the lazy dog. This sentence should be almost identical in both file1 and file2,
+but File3 has a minor change to test the avalanche effect."""
+
+# Writing the sample content to the files
+with open(file1_name, 'w') as f:
+    f.write(content_file1)
+
+with open(file2_name, 'w') as f:
+    f.write(content_file1)
+
+with open(file3_name, 'w') as f:
+    f.write(content_file3)
+
+# Comparing files and displaying results
+comparison_1_2, hash1, hash2 = compare_files(file1_name, file2_name)
+comparison_1_3, hash1_file1, hash3 = compare_files(file1_name, file3_name)
+
+print("Comparison of file1.txt and file2.txt: ", "Identical" if comparison_1_2 else "Different")
+print("Hash of file1.txt: ", hash1)
+print("Hash of file2.txt: ", hash2)
+
+print("Comparison of file1.txt and file3.txt: ", "Identical" if comparison_1_3 else "Different")
+print("Hash of file1.txt: ", hash1_file1)
+print("Hash of file3.txt: ", hash3)
