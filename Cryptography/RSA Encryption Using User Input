@@ -1,0 +1,69 @@
+import rsa
+
+# Step 1: Generate RSA keys
+def generate_rsa_keys():
+    (public_key, private_key) = rsa.newkeys(2048)  # Generate a 2048-bit RSA key pair
+    return public_key, private_key
+
+# Step 2: Chunk large message into manageable pieces for RSA encryption
+def chunk_message(message, chunk_size):
+    return [message[i:i + chunk_size] for i in range(0, len(message), chunk_size)]
+
+# Step 3: Encrypt each chunk of message with RSA public key
+def encrypt_message_in_chunks(public_key, message, chunk_size=245):  # 245 bytes for 2048-bit RSA
+    chunks = chunk_message(message.encode('utf-8'), chunk_size)
+    encrypted_chunks = [rsa.encrypt(chunk, public_key) for chunk in chunks]
+    return encrypted_chunks
+
+# Step 4: Write encrypted chunks to a binary file (as continuous byte stream)
+def write_encrypted_chunks_to_file(encrypted_chunks, filename="encrypted_chunks.bin"):
+    with open(filename, 'wb') as file:
+        for chunk in encrypted_chunks:
+            file.write(chunk)  # Write each chunk in binary format without splitting
+
+# Step 5: Read the binary encrypted chunks from the file
+def read_encrypted_chunks_from_file(filename="encrypted_chunks.bin", chunk_size=256):  # 256 bytes for 2048-bit RSA chunk
+    with open(filename, 'rb') as file:
+        encrypted_chunks = []
+        while True:
+            chunk = file.read(chunk_size)
+            if not chunk:
+                break
+            encrypted_chunks.append(chunk)
+    return encrypted_chunks
+
+# Step 6: Decrypt each chunk of ciphertext with RSA private key
+def decrypt_message_in_chunks(private_key, encrypted_chunks):
+    decrypted_chunks = [rsa.decrypt(chunk, private_key) for chunk in encrypted_chunks]
+    return b''.join(decrypted_chunks).decode('utf-8')
+
+# Step 7: Write decrypted message to file
+def write_decrypted_message_to_file(plain_text, filename="decrypted_message.txt"):
+    with open(filename, 'w') as file:
+        file.write(plain_text)
+
+if __name__ == "__main__":
+    # Step 1: Generate RSA keys
+    public_key, private_key = generate_rsa_keys()
+
+    # Step 2: Prompt user to enter a message
+    message = input("Enter the message you want to encrypt: ")
+
+    # Step 3: Encrypt the message in chunks using the public key
+    encrypted_chunks = encrypt_message_in_chunks(public_key, message)
+
+    # Step 4: Write the encrypted chunks to a binary file
+    write_encrypted_chunks_to_file(encrypted_chunks)
+
+    print("Message encrypted and written to 'encrypted_chunks.bin'.")
+
+    # Step 5: Read the encrypted chunks from the binary file
+    encrypted_chunks_from_file = read_encrypted_chunks_from_file()
+
+    # Step 6: Decrypt the message chunks using the private key
+    decrypted_message = decrypt_message_in_chunks(private_key, encrypted_chunks_from_file)
+
+    # Step 7: Write the decrypted message to a new file
+    write_decrypted_message_to_file(decrypted_message)
+
+    print("Message decrypted and written to 'decrypted_message.txt'.")
